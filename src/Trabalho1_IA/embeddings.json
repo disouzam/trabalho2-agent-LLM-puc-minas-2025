@@ -1,0 +1,4 @@
+[
+    { "Texto": "A energia solar é uma fonte renovável.", "Embedding": [0.12, -0.3, 0.7, ...] },
+    { "Texto": "Os carros elétricos reduzem emissões.", "Embedding": [-0.4, 0.1, 0.8, ...] }
+]
