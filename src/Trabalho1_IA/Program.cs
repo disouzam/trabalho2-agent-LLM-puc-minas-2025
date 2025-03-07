@@ -10,7 +10,7 @@ class Program
     private static readonly string OpenAiEndpoint = "https://api.openai.com/v1/chat/completions";
     private static readonly string ContextDados = "dadosV2.txt"; // Arquivo JSON com dados
     private static readonly string EmbeddingsFile = "embeddings.json"; // Arquivo JSON com embeddings
-    private static readonly int    MaxTokensResposta = 500; // Limite de tokens na resposta
+    private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
 
     static async Task Main()
     {
@@ -36,11 +36,11 @@ class Program
 
             } while (string.IsNullOrEmpty(pergunta));
 
-           
+
             if (pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
-           
+
 
             var embeddingsData = CarregarEmbeddings();
 
@@ -81,7 +81,7 @@ class Program
 
         foreach (var texto in documentoDataJsonList)
         {
-            if (string.IsNullOrWhiteSpace(texto)) continue; 
+            if (string.IsNullOrWhiteSpace(texto)) continue;
 
             var embedding = await ObterEmbedding(texto);
 
@@ -113,7 +113,7 @@ class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<EmbeddingResponse>(responseText);
 
-       return result.data.First().embedding;
+        return result.data.First().embedding;
     }
 
     static List<string> ObterChunksRelevantes(List<double> perguntaEmbedding, List<EmbeddingData> embeddingsData, int topN)
@@ -145,22 +145,22 @@ class Program
         {
             model = "gpt-4o-mini",
 
-            messages = new[] 
+            messages = new[]
             {
-                new 
-                { 
-                    role = "system", 
-                    content = "Responda com base no contexto fornecido." 
-                }, 
-                new 
-                { 
-                  role = "user", 
-                  content = prompt 
-                } 
+                new
+                {
+                    role = "system",
+                    content = "Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto, responda 'Não sei'."
+                },
+                new
+                {
+                  role = "user",
+                  content = prompt
+                }
             },
 
-            temperature = 0.7,
-            max_tokens = maxTokensResposta, 
+            temperature = 0.4,
+            max_tokens = maxTokensResposta,
         };
 
         string jsonPayload = JsonSerializer.Serialize(payload);
@@ -171,7 +171,14 @@ class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
 
-        return result.choices.First().message.content;
+        string resposta = result.choices.First().message.content;
+
+        if (resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase) )
+        {
+            resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
+        }
+
+        return resposta;
     }
 }
 
