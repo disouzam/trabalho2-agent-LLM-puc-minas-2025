@@ -3,7 +3,7 @@
 
 # Integrantes do Trabalho
 206228 - Deivisson Silva <br/>
-Edgar Júnio <br/>
+206241 - Edgar Júnior <br/>
 Mirella Alves <br/>
 Raphael Mendes <br/>
 Viviane Leilane <br/>
