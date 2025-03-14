@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using RestSharp;
 using System.Text;
 using System.Text.Json;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics;
+using System.Xml.Linq;
 
 class Program
 {
@@ -47,7 +50,6 @@ class Program
             var perguntaEmbedding = await ObterEmbedding(pergunta);
 
             var chunksRelevantes = ObterChunksRelevantes(perguntaEmbedding, embeddingsData, 3);
-
             string contexto = string.Join("\n", chunksRelevantes);
             string promptFinal = $"Contexto relevante:\n{contexto}\n\nPergunta:\n{pergunta}";
 
@@ -93,6 +95,24 @@ class Program
         File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
     }
 
+    static async void AtualizarEmbedding(string texto)
+    {
+       
+
+        List<EmbeddingData> embeddingsList = new();
+        using HttpClient client = new();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
+
+        if (string.IsNullOrWhiteSpace(texto)) continue;
+
+        var embedding = await ObterEmbedding(texto);
+
+        embeddingsList.Add(new EmbeddingData { Texto = texto, Embedding = embedding });
+
+        // Salvar no JSON com Embedding de saida
+        string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
+    }
     static List<EmbeddingData> CarregarEmbeddings()
     {
         string json = File.ReadAllText(EmbeddingsFile);
@@ -150,12 +170,32 @@ class Program
                 new
                 {
                     role = "system",
-                    content = "Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto, responda 'Não sei'."
+                    content = @"Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto, 
+                    também pode usar a função para buscar, caso não encontrar em nenhum responda  'Não sei'."
+
+
                 },
                 new
                 {
-                  role = "user",
-                  content = prompt
+                    role = "user",
+                    content = prompt
+                }
+            },
+            functions = new[]
+            {
+                new
+                {
+                    name = "GetProcessoExterno",
+                    description = "Busca detalhes de um processo fora do modelo de dados usando uma api externa",
+                    parameters = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            Numero = new { type = "integer", description = "Numero do processo" }
+                        },
+                        required = new[] { "Numero" }
+                    }
                 }
             },
 
@@ -171,15 +211,198 @@ class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
 
+        if (result.choices.First().message.function_call != null)
+        {
+            string functionName = result.choices.First().message.function_call.name;
+            string argumentsJson = result.choices.First().message.function_call.arguments;
+
+            if (functionName == "GetProcessoExterno")
+            {
+                var args = JsonSerializer.Deserialize<Dictionary<string, int>>(argumentsJson);
+                int numeroProjeto = args["Numero"];
+
+                string resultado = await GetProcessoExterno(numeroProjeto);
+
+                var responseMessage = new
+                {
+                    role = "assistant",
+                    content = resultado
+                };
+
+                var followUpPayload = new
+                {
+                    model = "gpt-4o-mini",
+                    messages = new[]
+                    {
+                       new
+                       {
+                            role = "system",
+                            content = "Você é um assistente especializado em responder perguntas com base nos dados fornecidos."
+                       },
+                       new
+                        {
+                            role = "assistant",
+                            content = resultado
+                        },
+                       new
+                        {
+                            role = "user",
+                            content = "Com base no resultado obtido da função, forneça um resumo detalhado."
+                       },
+                    }
+                };
+
+                string jsonFollowUpPayload = JsonSerializer.Serialize(followUpPayload);
+
+                var response2 = await client.PostAsync(OpenAiEndpoint,
+                new StringContent(jsonFollowUpPayload, Encoding.UTF8, "application/json"));
+
+                string response2Text = await response2.Content.ReadAsStringAsync();
+                var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
+
+                return result2.choices.First().message.content;
+            }
+        }
+
         string resposta = result.choices.First().message.content;
 
-        if (resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase) )
+        if (resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
         {
             resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
         }
 
         return resposta;
     }
+
+    static async Task<string> GetProcessoExterno(int processoId)
+    {
+        if (string.IsNullOrEmpty(Sessao.Token))
+        {
+            Sessao.Token = await LoginAPIExterna();
+        }
+
+        string responseJson = await ConsultarProcesso(processoId, Sessao.Token);
+
+        if (!string.IsNullOrEmpty(responseJson))
+        {
+            try
+            {
+                // Desserializa o JSON para um objeto em C#
+                var responseObj = JsonSerializer.Deserialize<ResponseConsultaExternaModelo>(responseJson);
+
+                if (responseObj?.Dados != null && responseObj.Dados.Any())
+                {
+                    var processo = responseObj.Dados.First();
+
+                    var resultado = new
+                    {
+                        tipo = processo.tipo,
+                        numero = processo.numero,
+                        processo = processo.processo,
+                        ano = processo.ano,
+                        ementa = processo.assunto,
+                        data = processo.data,
+                        autor = processo.AutorRequerenteDados?.nomeRazao ?? "Desconhecido",
+                        situacao = processo.situacao
+                    };
+
+                    string resultadoJson = JsonSerializer.Serialize(resultado, new JsonSerializerOptions { WriteIndented = true });
+                    return resultadoJson;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            catch (Exception ex)
+            {
+                return "";
+            }
+        }
+        else
+        {
+            return "";
+        }
+
+    }
+
+    private static async Task<string> LoginAPIExterna()
+    {
+        var options = new RestClientOptions("https://homolog.nopapercloud.com.br")
+        {
+            MaxTimeout = -1,
+        };
+
+        var client = new RestClient(options);
+        var request = new RestRequest("/camaramodelo/api/custom/base/login.aspx", Method.Post);
+
+        var body = new
+        {
+            Login = "teste.usuario",
+            Senha = "teste"
+        };
+
+        request.AddJsonBody(body);
+
+        RestResponse response = await client.ExecuteAsync(request);
+        Console.WriteLine(response.Content);
+
+        if (response.IsSuccessful && response.Content != null)
+        {
+            var jsonResponse = JsonDocument.Parse(response.Content);
+
+            if (jsonResponse.RootElement.TryGetProperty("Dados", out var dados) &&
+                dados.TryGetProperty("Authorization", out var token))
+            {
+                return token.GetString();
+
+            }
+        }
+
+        return "Falha ao obter token.";
+    }
+
+    static async Task<string> ConsultarProcesso(int Numero, string token)
+    {
+        var options = new RestClientOptions("https://homolog.nopapercloud.com.br")
+        {
+            MaxTimeout = -1,
+        };
+        var client = new RestClient(options);
+        var request = new RestRequest($"/camaramodelo/api/custom/base/processos_consultar.aspx?Processo={Numero}", Method.Get);
+
+        request.AddHeader("Authorization", $"{token}");
+
+        RestResponse response = await client.ExecuteAsync(request);
+        return response.Content;
+    }
+}
+
+public static class Sessao
+{
+    public static string Token { get; set; }
+}
+
+public class ResponseConsultaExternaModelo
+{
+    public Processo[] Dados { get; set; }
+}
+
+public class Processo
+{
+    public string tipo { get; set; }
+    public string numero { get; set; }
+    public string ano { get; set; }
+    public string processo { get; set; }
+    public string assunto { get; set; }
+    public string situacao { get; set; }
+    public string data { get; set; }
+    public Autor AutorRequerenteDados { get; set; }
+}
+
+public class Autor
+{
+    public string nomeRazao { get; set; }
 }
 
 // Classes auxiliares para serialização
@@ -187,38 +410,6 @@ public class EmbeddingData
 {
     public string Texto { get; set; }
     public List<double> Embedding { get; set; }
-}
-
-public class DocumentoDataJson
-{
-    public string tipo { get; set; }
-    public string numero { get; set; }
-    public string processo { get; set; }
-    public string ano { get; set; }
-    public string ementa { get; set; }
-    public string data { get; set; }
-    public string autor { get; set; }
-    public string situacao { get; set; }
-}
-
-public class DataJson
-{
-    public string Texto { get; set; }
-}
-
-//public class EmbeddingResponse
-//{
-//    public List<EmbeddingItem> Data { get; set; }
-//}
-
-public class EmbeddingItem
-{
-    public List<float> Embedding { get; set; }
-}
-
-public class Choice
-{
-    public ChatMessage Message { get; set; }
 }
 
 public class ChatMessage
@@ -270,7 +461,16 @@ public class Message
 {
     public string role { get; set; }
     public string content { get; set; }
+    public function_call function_call { get; set; }
     public object refusal { get; set; }
+
+}
+
+public class function_call
+{
+    public string name { get; set; }
+    public string arguments { get; set; }
+
 }
 
 public class PromptTokensDetails
