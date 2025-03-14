@@ -1,11 +1,7 @@
-﻿using RestSharp;
+﻿using Microsoft.ML;
+using RestSharp;
 using System.Text;
 using System.Text.Json;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.Xml.Linq;
 
 class Program
 {
@@ -95,24 +91,24 @@ class Program
         File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
     }
 
-    static async void AtualizarEmbedding(string texto)
-    {
+    //static async void AtualizarEmbedding(string texto)
+    //{
        
 
-        List<EmbeddingData> embeddingsList = new();
-        using HttpClient client = new();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
+    //    List<EmbeddingData> embeddingsList = new();
+    //    using HttpClient client = new();
+    //    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
 
-        if (string.IsNullOrWhiteSpace(texto)) continue;
+    //    if (string.IsNullOrWhiteSpace(texto)) continue;
 
-        var embedding = await ObterEmbedding(texto);
+    //    var embedding = await ObterEmbedding(texto);
 
-        embeddingsList.Add(new EmbeddingData { Texto = texto, Embedding = embedding });
+    //    embeddingsList.Add(new EmbeddingData { Texto = texto, Embedding = embedding });
 
-        // Salvar no JSON com Embedding de saida
-        string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
-    }
+    //    // Salvar no JSON com Embedding de saida
+    //    string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });
+    //    File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
+    //}
     static List<EmbeddingData> CarregarEmbeddings()
     {
         string json = File.ReadAllText(EmbeddingsFile);
