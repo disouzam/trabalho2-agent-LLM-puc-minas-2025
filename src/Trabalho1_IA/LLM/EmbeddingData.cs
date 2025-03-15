@@ -10,7 +10,10 @@ public class EmbeddingData
     public override string ToString()
     {
         var sb = new StringBuilder();
-        var parteInicialDoTexto = Texto.Substring(0, 100);
+        var maxComprimentoTexto = 100;
+
+        var comprimento = Math.Min(maxComprimentoTexto, Texto.Length);
+        var parteInicialDoTexto = Texto.Substring(0, comprimento);
 
         sb.AppendLine($"{ parteInicialDoTexto}[...]");
 
