@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 using Microsoft.ML;
@@ -28,8 +28,8 @@ public static class Embeddings
     {
         if(File.Exists(embeddingsFile))
         {
-        string json = File.ReadAllText(embeddingsFile);
-        return JsonSerializer.Deserialize<List<EmbeddingData>>(json);
+            string json = File.ReadAllText(embeddingsFile);
+            return JsonSerializer.Deserialize<List<EmbeddingData>>(json);
         }
 
         return new List<EmbeddingData>();
@@ -38,8 +38,6 @@ public static class Embeddings
     public static List<string> ObterChunksRelevantes(List<double> perguntaEmbedding, List<EmbeddingData> embeddingsData, int topN)
     {
         var mlContext = new MLContext();
-
-        // (Dickson) Passo 3: Mesclar chunks do contexto RAG com chunks do contexto de memória do chat.
 
         return embeddingsData
             .Select(d => new { d.Texto, Similaridade = CalcularSimilaridade(perguntaEmbedding, d.Embedding) })
@@ -91,7 +89,7 @@ public static class Embeddings
         return linhasDoArquivo;
     }
 
-    public static void SalvarArquivoDeEmbeddings(List<EmbeddingData> embeddingsList,string arquivo )
+    public static void SalvarArquivoDeEmbeddings(List<EmbeddingData> embeddingsList, string arquivo)
     {
         // Salvar no JSON com Embedding de saida
         string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });

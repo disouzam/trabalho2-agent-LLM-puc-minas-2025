@@ -27,8 +27,8 @@ public class Program
             Embeddings.SalvarArquivoDeEmbeddings(embeddingList, ContextEmbeddingsFile);
         }
 
-        var memoria = new List<EmbeddingData>();
-        var embeddingsData = new List<EmbeddingData>();
+        var embeddingsDaMemoria = new List<EmbeddingData>();
+        var embeddingsDoContexto = new List<EmbeddingData>();
 
         while(true)
         {
@@ -51,17 +51,28 @@ public class Program
             if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
-            if (embeddingsData.Count == 0)
+            if (embeddingsDoContexto.Count == 0)
             {
-                embeddingsData = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
+                embeddingsDoContexto = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
+            }
+
+            if (embeddingsDaMemoria.Count == 0)
+            {
+                embeddingsDaMemoria = Embeddings.CarregarEmbeddings(MemoryEmbeddingsFile);
             }
 
             var perguntaEmbedding = await Embeddings.ObterEmbedding(pergunta);
 
-            var chunksRelevantes = Embeddings.ObterChunksRelevantes(perguntaEmbedding, embeddingsData, 3);
+            var chunksRelevantesDoContexto = Embeddings.ObterChunksRelevantes(perguntaEmbedding, embeddingsDoContexto, 3);
+            var chunksRelevantesDaMemoria = Embeddings.ObterChunksRelevantes(perguntaEmbedding, embeddingsDaMemoria, 3);
+
+            var chunksTotal = new List<string>();
+
+            chunksTotal.AddRange(chunksRelevantesDoContexto);
+            chunksTotal.AddRange(chunksRelevantesDaMemoria);
 
             // (Dickson) Passo 4: Nesse ponto o contexto já está formado por chunks do RAG e da memória
-            string contexto = string.Join("\n", chunksRelevantes);
+            string contexto = string.Join("\n", chunksTotal);
             string promptFinal = $"Contexto relevante:\n{contexto}\n\nPergunta:\n{pergunta}";
 
             string resposta = await EnviarParaOpenAI(promptFinal, MaxTokensResposta);
@@ -70,15 +81,10 @@ public class Program
             // (Dickson) Passo 0: Converter a resposta em embeddings
             var embeddingsDaResposta = await Embeddings.GerarEmbedding([resposta]);
 
-            memoria.AddRange(embeddingsDaResposta);
-
-            foreach( var mem in memoria)
-            {
-                Console.WriteLine(mem);
-            }
+            embeddingsDaMemoria.AddRange(embeddingsDaResposta);
 
             // (Dickson) Passo 1: Salvar esses embeddings em um arquivo separado
-            Embeddings.SalvarArquivoDeEmbeddings(memoria, MemoryEmbeddingsFile);
+            Embeddings.SalvarArquivoDeEmbeddings(embeddingsDaMemoria, MemoryEmbeddingsFile);
 
             Console.WriteLine("\nResposta da IA:");
             Console.WriteLine(resposta);
