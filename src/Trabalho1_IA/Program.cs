@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 
 using Microsoft.ML;
@@ -8,25 +8,24 @@ using RestSharp;
 using ProcessoChat.Chat;
 using ProcessoChat.LLM;
 using ProcessoChat.Processos;
+using ProcessoChat.Servicos;
 
 namespace ProcessoChat;
 
 public class Program
 {
-    private static readonly string OpenAiApiKey = "{insira sua chave aqui}"; // Substitua pela sua chave de API OpenAI
-    private static readonly string OpenAiEndpoint = "https://api.openai.com/v1/chat/completions";
     private static readonly string ContextDados = "dadosV2.txt"; // Arquivo JSON com dados
     private static readonly string EmbeddingsFile = "embeddings.json"; // Arquivo JSON com embeddings
     private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
 
     public static async Task Main()
     {
-        if(!File.Exists(EmbeddingsFile))
+        if (!File.Exists(EmbeddingsFile))
         {
             await GerarEmbedding();
         }
 
-        while(true)
+        while (true)
         {
             string pergunta;
 
@@ -36,15 +35,15 @@ public class Program
 
                 pergunta = Console.ReadLine()?.Trim();
 
-                if(string.IsNullOrEmpty(pergunta))
+                if (string.IsNullOrEmpty(pergunta))
                 {
                     Console.WriteLine("Por favor, digite uma pergunta válida.");
                 }
 
-            } while(string.IsNullOrEmpty(pergunta));
+            } while (string.IsNullOrEmpty(pergunta));
 
 
-            if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
+            if (pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
             var embeddingsData = CarregarEmbeddings();
@@ -75,11 +74,11 @@ public class Program
     {
         List<string> documentoDataJsonList = [];
 
-        using(StreamReader sr = new StreamReader(ContextDados))
+        using (StreamReader sr = new StreamReader(ContextDados))
         {
             string textoLinha;
 
-            while((textoLinha = sr.ReadLine()) != null)
+            while ((textoLinha = sr.ReadLine()) != null)
             {
                 documentoDataJsonList.Add(textoLinha);
             }
@@ -87,9 +86,9 @@ public class Program
 
         var embeddingsList = new List<EmbeddingData>();
 
-        foreach(var texto in documentoDataJsonList)
+        foreach (var texto in documentoDataJsonList)
         {
-            if(string.IsNullOrWhiteSpace(texto)) continue;
+            if (string.IsNullOrWhiteSpace(texto)) continue;
 
             var embedding = await ObterEmbedding(texto);
 
@@ -112,13 +111,11 @@ public class Program
 
     static async Task<List<double>> ObterEmbedding(string texto)
     {
-        using HttpClient client = new();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
-
         var payload = new { model = "text-embedding-3-small", input = texto };
         string jsonPayload = JsonSerializer.Serialize(payload);
 
-        var response = await client.PostAsync("https://api.openai.com/v1/embeddings",
+        using var client = new ClientAPI().ObterClientAPI();
+        var response = await client.PostAsync(ClientAPI.EmbeddingsUrl,
             new StringContent(jsonPayload, Encoding.UTF8, "application/json"));
 
         string responseText = await response.Content.ReadAsStringAsync();
@@ -152,8 +149,7 @@ public class Program
 
     static async Task<string> EnviarParaOpenAI(string prompt, int maxTokensResposta)
     {
-        using HttpClient client = new();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
+        using var client = new ClientAPI().ObterClientAPI();
 
         var payload = new
         {
@@ -164,7 +160,7 @@ public class Program
                 new
                 {
                     role = "system",
-                    content = @"Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto, 
+                    content = @"Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto,
                     também pode usar a função para buscar, caso não encontrar em nenhum responda  'Não sei'."
                 },
                 new
@@ -197,18 +193,18 @@ public class Program
 
         string jsonPayload = JsonSerializer.Serialize(payload);
 
-        var response = await client.PostAsync(OpenAiEndpoint,
+        var response = await client.PostAsync(ClientAPI.OpenAiEndpoint,
             new StringContent(jsonPayload, Encoding.UTF8, "application/json"));
 
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
 
-        if(result.Choices.First().Message.FunctionCall != null)
+        if (result.Choices.First().Message.FunctionCall != null)
         {
             string functionName = result.Choices.First().Message.FunctionCall.Name;
             string argumentsJson = result.Choices.First().Message.FunctionCall.Arguments;
 
-            if(functionName == "GetProcessoExterno")
+            if (functionName == "GetProcessoExterno")
             {
                 var args = JsonSerializer.Deserialize<Dictionary<string, int>>(argumentsJson);
                 int numeroProjeto = args["Numero"];
@@ -246,7 +242,7 @@ public class Program
 
                 string jsonFollowUpPayload = JsonSerializer.Serialize(followUpPayload);
 
-                var response2 = await client.PostAsync(OpenAiEndpoint,
+                var response2 = await client.PostAsync(ClientAPI.OpenAiEndpoint,
                 new StringContent(jsonFollowUpPayload, Encoding.UTF8, "application/json"));
 
                 string response2Text = await response2.Content.ReadAsStringAsync();
@@ -258,7 +254,7 @@ public class Program
 
         string resposta = result.Choices.First().Message.Content;
 
-        if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
+        if (resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
         {
             resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
         }
@@ -268,21 +264,21 @@ public class Program
 
     static async Task<string> GetProcessoExterno(int processoId)
     {
-        if(string.IsNullOrEmpty(Sessao.Token))
+        if (string.IsNullOrEmpty(Sessao.Token))
         {
             Sessao.Token = await LoginAPIExterna();
         }
 
         string responseJson = await ConsultarProcesso(processoId, Sessao.Token);
 
-        if(!string.IsNullOrEmpty(responseJson))
+        if (!string.IsNullOrEmpty(responseJson))
         {
             try
             {
                 // Desserializa o JSON para um objeto em C#
                 var responseObj = JsonSerializer.Deserialize<ResponseConsultaExternaModelo>(responseJson);
 
-                if(responseObj?.Dados != null && responseObj.Dados.Any())
+                if (responseObj?.Dados != null && responseObj.Dados.Any())
                 {
                     var processo = responseObj.Dados.First();
 
@@ -306,7 +302,7 @@ public class Program
                     return "";
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return "";
             }
@@ -338,11 +334,11 @@ public class Program
         RestResponse response = await client.ExecuteAsync(request);
         Console.WriteLine(response.Content);
 
-        if(response.IsSuccessful && response.Content != null)
+        if (response.IsSuccessful && response.Content != null)
         {
             var jsonResponse = JsonDocument.Parse(response.Content);
 
-            if(jsonResponse.RootElement.TryGetProperty("Dados", out var dados) &&
+            if (jsonResponse.RootElement.TryGetProperty("Dados", out var dados) &&
                 dados.TryGetProperty("Authorization", out var token))
             {
                 return token.GetString();
