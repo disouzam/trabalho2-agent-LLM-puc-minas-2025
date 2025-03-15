@@ -193,10 +193,10 @@ public class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
 
-        if(result.Choices.First().message.function_call != null)
+        if(result.Choices.First().Message.function_call != null)
         {
-            string functionName = result.Choices.First().message.function_call.name;
-            string argumentsJson = result.Choices.First().message.function_call.arguments;
+            string functionName = result.Choices.First().Message.function_call.name;
+            string argumentsJson = result.Choices.First().Message.function_call.arguments;
 
             if(functionName == "GetProcessoExterno")
             {
@@ -242,11 +242,11 @@ public class Program
                 string response2Text = await response2.Content.ReadAsStringAsync();
                 var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
 
-                return result2.Choices.First().message.content;
+                return result2.Choices.First().Message.content;
             }
         }
 
-        string resposta = result.Choices.First().message.content;
+        string resposta = result.Choices.First().Message.content;
 
         if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
         {
