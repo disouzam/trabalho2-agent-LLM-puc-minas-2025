@@ -11,7 +11,7 @@ using ProcessoChat.Processos;
 
 namespace ProcessoChat;
 
-class Program
+public class Program
 {
     private static readonly string OpenAiApiKey = "{insira sua chave aqui}"; // Substitua pela sua chave de API OpenAI
     private static readonly string OpenAiEndpoint = "https://api.openai.com/v1/chat/completions";
@@ -19,7 +19,7 @@ class Program
     private static readonly string EmbeddingsFile = "embeddings.json"; // Arquivo JSON com embeddings
     private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
 
-    static async Task Main()
+    public static async Task Main()
     {
         if(!File.Exists(EmbeddingsFile))
         {
