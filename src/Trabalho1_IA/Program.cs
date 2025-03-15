@@ -23,7 +23,7 @@ public class Program
     {
         if(!File.Exists(EmbeddingsFile))
         {
-            GerarEmbedding();
+            await GerarEmbedding();
         }
 
         while(true)
@@ -71,7 +71,7 @@ public class Program
         Console.WriteLine("Chat encerrado.");
     }
 
-    static async void GerarEmbedding()
+    private static async Task GerarEmbedding()
     {
         List<string> documentoDataJsonList = [];
 
@@ -85,7 +85,7 @@ public class Program
             }
         }
 
-        List<EmbeddingData> embeddingsList = new();
+        var embeddingsList = new List<EmbeddingData>();
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
 
