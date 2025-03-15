@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 
 using ProcessoChat.Chat;
@@ -27,6 +27,7 @@ public class Program
         }
 
         var memoria = new List<EmbeddingData>();
+        var embeddingsData = new List<EmbeddingData>();
 
         while(true)
         {
@@ -49,7 +50,10 @@ public class Program
             if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
-            var embeddingsData = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
+            if (embeddingsData.Count == 0)
+            {
+                embeddingsData = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
+            }
 
             var perguntaEmbedding = await Embeddings.ObterEmbedding(pergunta);
 
