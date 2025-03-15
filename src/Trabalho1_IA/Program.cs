@@ -5,6 +5,8 @@ using Microsoft.ML;
 
 using RestSharp;
 
+namespace ProcessoChat;
+
 class Program
 {
     private static readonly string OpenAiApiKey = "{insira sua chave aqui}"; // Substitua pela sua chave de API OpenAI
