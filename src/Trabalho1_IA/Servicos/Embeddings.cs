@@ -56,7 +56,7 @@ public static class Embeddings
         return dotProduct / (magnitude1 * magnitude2);
     }
 
-    public static async Task<List<EmbeddingData>> GerarEmbedding(List<string> listaDeChunks, string arquivo)
+    public static async Task<List<EmbeddingData>> GerarEmbedding(List<string> listaDeChunks)
     {
         var embeddingsList = new List<EmbeddingData>();
 

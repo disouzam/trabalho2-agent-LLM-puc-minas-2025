@@ -23,10 +23,12 @@ public class Program
         if(!File.Exists(EmbeddingsFile))
         {
             var conteudoDados = Embeddings.LerArquivoTexto(ContextDados);
-            var embeddingList = await Embeddings.GerarEmbedding(conteudoDados, EmbeddingsFile);
+            var embeddingList = await Embeddings.GerarEmbedding(conteudoDados);
 
             Embeddings.SalvarArquivoDeEmbeddings(embeddingList, EmbeddingsFile);
         }
+
+        var memoria = new List<EmbeddingData>();
 
         while(true)
         {
@@ -63,6 +65,15 @@ public class Program
 
             // Rascunho de implementação do uso de memória
             // (Dickson) Passo 0: Converter a resposta em embeddings
+            var embeddingsDaResposta = await Embeddings.GerarEmbedding([resposta]);
+
+            memoria.AddRange(embeddingsDaResposta);
+
+            foreach( var mem in memoria)
+            {
+                Console.WriteLine(mem);
+            }
+
             // (Dickson) Passo 1: Salvar esses embeddings em um arquivo separado
 
             Console.WriteLine("\nResposta da IA:");
