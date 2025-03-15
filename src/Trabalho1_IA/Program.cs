@@ -22,7 +22,7 @@ public class Program
     {
         if(!File.Exists(EmbeddingsFile))
         {
-            await Embeddings.GerarEmbedding(ContextDados, EmbeddingsFile);
+            var embeddingList = await Embeddings.GerarEmbedding(ContextDados, EmbeddingsFile);
         }
 
         while(true)

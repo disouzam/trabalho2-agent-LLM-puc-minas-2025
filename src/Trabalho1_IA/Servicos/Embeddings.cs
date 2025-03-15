@@ -56,7 +56,7 @@ public static class Embeddings
         return dotProduct / (magnitude1 * magnitude2);
     }
 
-    public static async Task GerarEmbedding(string fonte, string arquivo)
+    public static async Task<List<EmbeddingData>> GerarEmbedding(string fonte, string arquivo)
     {
         List<string> documentoDataJsonList = [];
 
@@ -84,5 +84,7 @@ public static class Embeddings
         // Salvar no JSON com Embedding de saida
         string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(arquivo, jsonEmbeddings);
+
+        return embeddingsList;
     }
 }
