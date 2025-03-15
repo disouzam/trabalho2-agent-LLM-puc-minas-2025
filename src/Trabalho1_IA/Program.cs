@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 using Microsoft.ML;
@@ -113,7 +113,7 @@ public class Program
     {
         var payload = new { model = "text-embedding-3-small", input = texto };
         string jsonPayload = JsonSerializer.Serialize(payload);
-
+        
         using var client = new ClientAPI().ObterClientAPI();
         var response = await client.PostAsync(ClientAPI.EmbeddingsUrl,
             new StringContent(jsonPayload, Encoding.UTF8, "application/json"));
