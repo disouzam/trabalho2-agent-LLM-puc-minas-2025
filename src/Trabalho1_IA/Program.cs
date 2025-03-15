@@ -301,7 +301,6 @@ class Program
         {
             return "";
         }
-
     }
 
     private static async Task<string> LoginAPIExterna()
@@ -395,7 +394,6 @@ public class ChatMessage
     public string Content { get; set; }
 }
 
-// Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 public class Datum
 {
     public string @object { get; set; }
@@ -417,7 +415,6 @@ public class Usage
     public int total_tokens { get; set; }
 }
 
-// Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 public class ChoiceResponse
 {
     public int index { get; set; }
@@ -440,14 +437,12 @@ public class Message
     public string content { get; set; }
     public function_call function_call { get; set; }
     public object refusal { get; set; }
-
 }
 
 public class function_call
 {
     public string name { get; set; }
     public string arguments { get; set; }
-
 }
 
 public class PromptTokensDetails
@@ -476,4 +471,3 @@ public class UsageResponse
     public PromptTokensDetails prompt_tokens_details { get; set; }
     public CompletionTokensDetails completion_tokens_details { get; set; }
 }
-
