@@ -52,10 +52,16 @@ public class Program
             var perguntaEmbedding = await ObterEmbedding(pergunta);
 
             var chunksRelevantes = ObterChunksRelevantes(perguntaEmbedding, embeddingsData, 3);
+
+            // (Dickson) Passo 4: Nesse ponto o contexto já está formado por chunks do RAG e da memória
             string contexto = string.Join("\n", chunksRelevantes);
             string promptFinal = $"Contexto relevante:\n{contexto}\n\nPergunta:\n{pergunta}";
 
             string resposta = await EnviarParaOpenAI(promptFinal, MaxTokensResposta);
+
+            // Rascunho de implementação do uso de memória
+            // (Dickson) Passo 0: Converter a resposta em embeddings
+            // (Dickson) Passo 1: Salvar esses embeddings em um arquivo separado
 
             Console.WriteLine("\nResposta da IA:");
             Console.WriteLine(resposta);
@@ -100,6 +106,9 @@ public class Program
     static List<EmbeddingData> CarregarEmbeddings()
     {
         string json = File.ReadAllText(EmbeddingsFile);
+
+        // (Dickson) Passo 2: Carregar os embeddings da memória (do chat)
+
         return JsonSerializer.Deserialize<List<EmbeddingData>>(json);
     }
 
@@ -123,6 +132,9 @@ public class Program
     static List<string> ObterChunksRelevantes(List<double> perguntaEmbedding, List<EmbeddingData> embeddingsData, int topN)
     {
         var mlContext = new MLContext();
+
+        // (Dickson) Passo 3: Mesclar chunks do contexto RAG com chunks do contexto de memória do chat.
+
         return embeddingsData
             .Select(d => new { d.Texto, Similaridade = CalcularSimilaridade(perguntaEmbedding, d.Embedding) })
             .OrderByDescending(x => x.Similaridade)
