@@ -5,6 +5,8 @@ using Microsoft.ML;
 
 using RestSharp;
 
+using ProcessoChat.Chat;
+
 namespace ProcessoChat;
 
 class Program
@@ -388,12 +390,6 @@ public class EmbeddingData
     public List<double> Embedding { get; set; }
 }
 
-public class ChatMessage
-{
-    public string Role { get; set; }
-    public string Content { get; set; }
-}
-
 public class Datum
 {
     public string @object { get; set; }
@@ -449,18 +445,6 @@ public class PromptTokensDetails
 {
     public int cached_tokens { get; set; }
     public int audio_tokens { get; set; }
-}
-
-public class ChatResponse
-{
-    public string id { get; set; }
-    public string @object { get; set; }
-    public int created { get; set; }
-    public string model { get; set; }
-    public List<ChoiceResponse> choices { get; set; }
-    public UsageResponse usage { get; set; }
-    public string service_tier { get; set; }
-    public string system_fingerprint { get; set; }
 }
 
 public class UsageResponse
