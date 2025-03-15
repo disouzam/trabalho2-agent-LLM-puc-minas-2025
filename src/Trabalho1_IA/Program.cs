@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 using ProcessoChat.Chat;
@@ -14,6 +14,7 @@ public class Program
 {
     private static readonly string ContextDados = "dadosV2.txt"; // Arquivo JSON com dados
     private static readonly string ContextEmbeddingsFile = "embeddingsContexto.json"; // Arquivo JSON com embeddings do contexto
+    private static readonly string MemoryEmbeddingsFile = "embeddingsMemoria.json"; // Arquivo JSON com embeddings da memória
     private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
 
     public static async Task Main()
@@ -77,6 +78,7 @@ public class Program
             }
 
             // (Dickson) Passo 1: Salvar esses embeddings em um arquivo separado
+            Embeddings.SalvarArquivoDeEmbeddings(memoria, MemoryEmbeddingsFile);
 
             Console.WriteLine("\nResposta da IA:");
             Console.WriteLine(resposta);
