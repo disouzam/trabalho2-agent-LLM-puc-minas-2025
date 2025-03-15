@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 
 using Microsoft.ML;
@@ -26,11 +26,13 @@ public static class Embeddings
 
     public static List<EmbeddingData> CarregarEmbeddings(string embeddingsFile)
     {
+        if(File.Exists(embeddingsFile))
+        {
         string json = File.ReadAllText(embeddingsFile);
-
-        // (Dickson) Passo 2: Carregar os embeddings da memória (do chat)
-
         return JsonSerializer.Deserialize<List<EmbeddingData>>(json);
+        }
+
+        return new List<EmbeddingData>();
     }
 
     public static List<string> ObterChunksRelevantes(List<double> perguntaEmbedding, List<EmbeddingData> embeddingsData, int topN)
