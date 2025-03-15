@@ -1,14 +1,12 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-using Microsoft.ML;
-
-using RestSharp;
-
 using ProcessoChat.Chat;
 using ProcessoChat.LLM;
 using ProcessoChat.Processos;
 using ProcessoChat.Servicos;
+
+using RestSharp;
 
 namespace ProcessoChat;
 
