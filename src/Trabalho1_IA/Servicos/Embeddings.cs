@@ -56,35 +56,43 @@ public static class Embeddings
         return dotProduct / (magnitude1 * magnitude2);
     }
 
-    public static async Task<List<EmbeddingData>> GerarEmbedding(string fonte, string arquivo)
+    public static async Task<List<EmbeddingData>> GerarEmbedding(List<string> listaDeChunks, string arquivo)
     {
-        List<string> documentoDataJsonList = [];
+        var embeddingsList = new List<EmbeddingData>();
 
-        using(var sr = new StreamReader(fonte))
+        foreach(var chunk in listaDeChunks)
+        {
+            if(string.IsNullOrWhiteSpace(chunk)) continue;
+
+            var embedding = await Embeddings.ObterEmbedding(chunk);
+
+            embeddingsList.Add(new EmbeddingData { Texto = chunk, Embedding = embedding });
+        }
+
+        return embeddingsList;
+    }
+
+    public static List<string> LerArquivoTexto(string caminhoDoArquivo)
+    {
+        List<string> linhasDoArquivo = [];
+
+        using(var sr = new StreamReader(caminhoDoArquivo))
         {
             string textoLinha;
 
             while((textoLinha = sr.ReadLine()) != null)
             {
-                documentoDataJsonList.Add(textoLinha);
+                linhasDoArquivo.Add(textoLinha);
             }
         }
 
-        var embeddingsList = new List<EmbeddingData>();
+        return linhasDoArquivo;
+    }
 
-        foreach(var texto in documentoDataJsonList)
-        {
-            if(string.IsNullOrWhiteSpace(texto)) continue;
-
-            var embedding = await Embeddings.ObterEmbedding(texto);
-
-            embeddingsList.Add(new EmbeddingData { Texto = texto, Embedding = embedding });
-        }
-
+    public static void SalvarArquivoDeEmbeddings(List<EmbeddingData> embeddingsList,string arquivo )
+    {
         // Salvar no JSON com Embedding de saida
         string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(arquivo, jsonEmbeddings);
-
-        return embeddingsList;
     }
 }

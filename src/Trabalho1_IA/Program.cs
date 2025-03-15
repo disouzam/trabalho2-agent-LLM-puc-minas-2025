@@ -22,7 +22,10 @@ public class Program
     {
         if(!File.Exists(EmbeddingsFile))
         {
-            var embeddingList = await Embeddings.GerarEmbedding(ContextDados, EmbeddingsFile);
+            var conteudoDados = Embeddings.LerArquivoTexto(ContextDados);
+            var embeddingList = await Embeddings.GerarEmbedding(conteudoDados, EmbeddingsFile);
+
+            Embeddings.SalvarArquivoDeEmbeddings(embeddingList, EmbeddingsFile);
         }
 
         while(true)
