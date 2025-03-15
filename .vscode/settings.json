@@ -1,0 +1,10 @@
+{
+    "files.trimTrailingWhitespace": true,
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/.git": true,
+        "**/bin": true,
+        "**/.vs": true,
+        "**/obj": true,
+    }
+}
