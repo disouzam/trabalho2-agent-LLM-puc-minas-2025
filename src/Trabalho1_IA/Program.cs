@@ -15,12 +15,12 @@ class Program
 
     static async Task Main()
     {
-        if (!File.Exists(EmbeddingsFile))
+        if(!File.Exists(EmbeddingsFile))
         {
             GerarEmbedding();
         }
 
-        while (true)
+        while(true)
         {
             string pergunta;
 
@@ -30,18 +30,16 @@ class Program
 
                 pergunta = Console.ReadLine()?.Trim();
 
-                if (string.IsNullOrEmpty(pergunta))
+                if(string.IsNullOrEmpty(pergunta))
                 {
                     Console.WriteLine("Por favor, digite uma pergunta válida.");
                 }
 
-            } while (string.IsNullOrEmpty(pergunta));
+            } while(string.IsNullOrEmpty(pergunta));
 
 
-            if (pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
+            if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
-
-
 
             var embeddingsData = CarregarEmbeddings();
 
@@ -65,11 +63,11 @@ class Program
     {
         List<string> documentoDataJsonList = [];
 
-        using (StreamReader sr = new StreamReader(ContextDados))
+        using(StreamReader sr = new StreamReader(ContextDados))
         {
             string textoLinha;
 
-            while ((textoLinha = sr.ReadLine()) != null)
+            while((textoLinha = sr.ReadLine()) != null)
             {
                 documentoDataJsonList.Add(textoLinha);
             }
@@ -79,9 +77,9 @@ class Program
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
 
-        foreach (var texto in documentoDataJsonList)
+        foreach(var texto in documentoDataJsonList)
         {
-            if (string.IsNullOrWhiteSpace(texto)) continue;
+            if(string.IsNullOrWhiteSpace(texto)) continue;
 
             var embedding = await ObterEmbedding(texto);
 
@@ -170,8 +168,6 @@ class Program
                     role = "system",
                     content = @"Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto, 
                     também pode usar a função para buscar, caso não encontrar em nenhum responda  'Não sei'."
-
-
                 },
                 new
                 {
@@ -209,12 +205,12 @@ class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
 
-        if (result.choices.First().message.function_call != null)
+        if(result.choices.First().message.function_call != null)
         {
             string functionName = result.choices.First().message.function_call.name;
             string argumentsJson = result.choices.First().message.function_call.arguments;
 
-            if (functionName == "GetProcessoExterno")
+            if(functionName == "GetProcessoExterno")
             {
                 var args = JsonSerializer.Deserialize<Dictionary<string, int>>(argumentsJson);
                 int numeroProjeto = args["Numero"];
@@ -264,7 +260,7 @@ class Program
 
         string resposta = result.choices.First().message.content;
 
-        if (resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
+        if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
         {
             resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
         }
@@ -274,21 +270,21 @@ class Program
 
     static async Task<string> GetProcessoExterno(int processoId)
     {
-        if (string.IsNullOrEmpty(Sessao.Token))
+        if(string.IsNullOrEmpty(Sessao.Token))
         {
             Sessao.Token = await LoginAPIExterna();
         }
 
         string responseJson = await ConsultarProcesso(processoId, Sessao.Token);
 
-        if (!string.IsNullOrEmpty(responseJson))
+        if(!string.IsNullOrEmpty(responseJson))
         {
             try
             {
                 // Desserializa o JSON para um objeto em C#
                 var responseObj = JsonSerializer.Deserialize<ResponseConsultaExternaModelo>(responseJson);
 
-                if (responseObj?.Dados != null && responseObj.Dados.Any())
+                if(responseObj?.Dados != null && responseObj.Dados.Any())
                 {
                     var processo = responseObj.Dados.First();
 
@@ -312,7 +308,7 @@ class Program
                     return "";
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 return "";
             }
@@ -345,15 +341,14 @@ class Program
         RestResponse response = await client.ExecuteAsync(request);
         Console.WriteLine(response.Content);
 
-        if (response.IsSuccessful && response.Content != null)
+        if(response.IsSuccessful && response.Content != null)
         {
             var jsonResponse = JsonDocument.Parse(response.Content);
 
-            if (jsonResponse.RootElement.TryGetProperty("Dados", out var dados) &&
+            if(jsonResponse.RootElement.TryGetProperty("Dados", out var dados) &&
                 dados.TryGetProperty("Authorization", out var token))
             {
                 return token.GetString();
-
             }
         }
 
