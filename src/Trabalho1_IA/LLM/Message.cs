@@ -1,9 +1,18 @@
-﻿namespace ProcessoChat.LLM;
+﻿using System.Text.Json.Serialization;
+
+namespace ProcessoChat.LLM;
 
 public class Message
 {
-    public string role { get; set; }
-    public string content { get; set; }
-    public function_call function_call { get; set; }
-    public object refusal { get; set; }
+    [JsonPropertyName("role")]
+    public string Role { get; set; }
+
+    [JsonPropertyName("content")]
+    public string Content { get; set; }
+
+    [JsonPropertyName("function_call")]
+    public FunctionCall FunctionCall { get; set; }
+
+    [JsonPropertyName("refusal")]
+    public object Refusal { get; set; }
 }

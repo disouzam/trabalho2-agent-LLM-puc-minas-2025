@@ -1,9 +1,18 @@
-﻿namespace ProcessoChat.LLM;
+﻿using System.Text.Json.Serialization;
+
+namespace ProcessoChat.LLM;
 
 public class EmbeddingResponse
 {
-    public string @object { get; set; }
-    public List<Datum> data { get; set; }
-    public string model { get; set; }
-    public Usage usage { get; set; }
+    [JsonPropertyName("object")]
+    public string Object { get; set; }
+
+    [JsonPropertyName("data")]
+    public List<Datum> Data { get; set; }
+
+    [JsonPropertyName("model")]
+    public string Model { get; set; }
+
+    [JsonPropertyName("usage")]
+    public Usage Usage { get; set; }
 }

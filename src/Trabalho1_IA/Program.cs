@@ -117,7 +117,7 @@ public class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<EmbeddingResponse>(responseText);
 
-        return result.data.First().embedding;
+        return result.Data.First().Embedding;
     }
 
     static List<string> ObterChunksRelevantes(List<double> perguntaEmbedding, List<EmbeddingData> embeddingsData, int topN)
@@ -193,10 +193,10 @@ public class Program
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
 
-        if(result.Choices.First().Message.function_call != null)
+        if(result.Choices.First().Message.FunctionCall != null)
         {
-            string functionName = result.Choices.First().Message.function_call.name;
-            string argumentsJson = result.Choices.First().Message.function_call.arguments;
+            string functionName = result.Choices.First().Message.FunctionCall.Name;
+            string argumentsJson = result.Choices.First().Message.FunctionCall.Arguments;
 
             if(functionName == "GetProcessoExterno")
             {
@@ -242,11 +242,11 @@ public class Program
                 string response2Text = await response2.Content.ReadAsStringAsync();
                 var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
 
-                return result2.Choices.First().Message.content;
+                return result2.Choices.First().Message.Content;
             }
         }
 
-        string resposta = result.Choices.First().Message.content;
+        string resposta = result.Choices.First().Message.Content;
 
         if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
         {

@@ -1,7 +1,12 @@
-﻿namespace ProcessoChat.LLM;
+﻿using System.Text.Json.Serialization;
+
+namespace ProcessoChat.LLM;
 
 public class PromptTokensDetails
 {
-    public int cached_tokens { get; set; }
-    public int audio_tokens { get; set; }
+    [JsonPropertyName("cached_tokens")]
+    public int CachedTokens { get; set; }
+
+    [JsonPropertyName("audio_tokens")]
+    public int AudioTokens { get; set; }
 }

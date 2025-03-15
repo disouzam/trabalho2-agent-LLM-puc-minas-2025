@@ -1,8 +1,15 @@
-﻿namespace ProcessoChat.LLM;
+﻿using System.Text.Json.Serialization;
+
+namespace ProcessoChat.LLM;
 
 public class Datum
 {
-    public string @object { get; set; }
-    public int index { get; set; }
-    public List<double> embedding { get; set; }
+    [JsonPropertyName("object")]
+    public string Object { get; set; }
+
+    [JsonPropertyName("index")]
+    public int Index { get; set; }
+
+    [JsonPropertyName("embedding")]
+    public List<double> Embedding { get; set; }
 }
