@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 using Microsoft.ML;
@@ -91,24 +91,6 @@ class Program
         File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
     }
 
-    //static async void AtualizarEmbedding(string texto)
-    //{
-       
-
-    //    List<EmbeddingData> embeddingsList = new();
-    //    using HttpClient client = new();
-    //    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
-
-    //    if (string.IsNullOrWhiteSpace(texto)) continue;
-
-    //    var embedding = await ObterEmbedding(texto);
-
-    //    embeddingsList.Add(new EmbeddingData { Texto = texto, Embedding = embedding });
-
-    //    // Salvar no JSON com Embedding de saida
-    //    string jsonEmbeddings = JsonSerializer.Serialize(embeddingsList, new JsonSerializerOptions { WriteIndented = true });
-    //    File.WriteAllText(EmbeddingsFile, jsonEmbeddings);
-    //}
     static List<EmbeddingData> CarregarEmbeddings()
     {
         string json = File.ReadAllText(EmbeddingsFile);
@@ -234,12 +216,12 @@ class Program
                             content = "Você é um assistente especializado em responder perguntas com base nos dados fornecidos."
                        },
                        new
-                        {
+                       {
                             role = "assistant",
                             content = resultado
-                        },
+                       },
                        new
-                        {
+                       {
                             role = "user",
                             content = "Com base no resultado obtido da função, forneça um resumo detalhado."
                        },
