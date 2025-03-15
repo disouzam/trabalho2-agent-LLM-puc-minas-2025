@@ -86,8 +86,6 @@ public class Program
         }
 
         var embeddingsList = new List<EmbeddingData>();
-        using HttpClient client = new();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiApiKey}");
 
         foreach(var texto in documentoDataJsonList)
         {
