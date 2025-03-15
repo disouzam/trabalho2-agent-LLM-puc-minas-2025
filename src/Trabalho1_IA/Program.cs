@@ -15,17 +15,17 @@ namespace ProcessoChat;
 public class Program
 {
     private static readonly string ContextDados = "dadosV2.txt"; // Arquivo JSON com dados
-    private static readonly string EmbeddingsFile = "embeddings.json"; // Arquivo JSON com embeddings
+    private static readonly string ContextEmbeddingsFile = "embeddingsContexto.json"; // Arquivo JSON com embeddings do contexto
     private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
 
     public static async Task Main()
     {
-        if(!File.Exists(EmbeddingsFile))
+        if(!File.Exists(ContextEmbeddingsFile))
         {
             var conteudoDados = Embeddings.LerArquivoTexto(ContextDados);
             var embeddingList = await Embeddings.GerarEmbedding(conteudoDados);
 
-            Embeddings.SalvarArquivoDeEmbeddings(embeddingList, EmbeddingsFile);
+            Embeddings.SalvarArquivoDeEmbeddings(embeddingList, ContextEmbeddingsFile);
         }
 
         var memoria = new List<EmbeddingData>();
@@ -51,7 +51,7 @@ public class Program
             if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
-            var embeddingsData = Embeddings.CarregarEmbeddings(EmbeddingsFile);
+            var embeddingsData = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
 
             var perguntaEmbedding = await Embeddings.ObterEmbedding(pergunta);
 
