@@ -14,4 +14,10 @@
     <PackageReference Include="System.Text.Json" Version="9.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="dadosV2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
