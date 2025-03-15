@@ -6,6 +6,8 @@ using Microsoft.ML;
 using RestSharp;
 
 using ProcessoChat.Chat;
+using ProcessoChat.LLM;
+using ProcessoChat.Processos;
 
 namespace ProcessoChat;
 
@@ -354,104 +356,4 @@ class Program
         RestResponse response = await client.ExecuteAsync(request);
         return response.Content;
     }
-}
-
-public static class Sessao
-{
-    public static string Token { get; set; }
-}
-
-public class ResponseConsultaExternaModelo
-{
-    public Processo[] Dados { get; set; }
-}
-
-public class Processo
-{
-    public string tipo { get; set; }
-    public string numero { get; set; }
-    public string ano { get; set; }
-    public string processo { get; set; }
-    public string assunto { get; set; }
-    public string situacao { get; set; }
-    public string data { get; set; }
-    public Autor AutorRequerenteDados { get; set; }
-}
-
-public class Autor
-{
-    public string nomeRazao { get; set; }
-}
-
-// Classes auxiliares para serialização
-public class EmbeddingData
-{
-    public string Texto { get; set; }
-    public List<double> Embedding { get; set; }
-}
-
-public class Datum
-{
-    public string @object { get; set; }
-    public int index { get; set; }
-    public List<double> embedding { get; set; }
-}
-
-public class EmbeddingResponse
-{
-    public string @object { get; set; }
-    public List<Datum> data { get; set; }
-    public string model { get; set; }
-    public Usage usage { get; set; }
-}
-
-public class Usage
-{
-    public int prompt_tokens { get; set; }
-    public int total_tokens { get; set; }
-}
-
-public class ChoiceResponse
-{
-    public int index { get; set; }
-    public Message message { get; set; }
-    public object logprobs { get; set; }
-    public string finish_reason { get; set; }
-}
-
-public class CompletionTokensDetails
-{
-    public int reasoning_tokens { get; set; }
-    public int audio_tokens { get; set; }
-    public int accepted_prediction_tokens { get; set; }
-    public int rejected_prediction_tokens { get; set; }
-}
-
-public class Message
-{
-    public string role { get; set; }
-    public string content { get; set; }
-    public function_call function_call { get; set; }
-    public object refusal { get; set; }
-}
-
-public class function_call
-{
-    public string name { get; set; }
-    public string arguments { get; set; }
-}
-
-public class PromptTokensDetails
-{
-    public int cached_tokens { get; set; }
-    public int audio_tokens { get; set; }
-}
-
-public class UsageResponse
-{
-    public int prompt_tokens { get; set; }
-    public int completion_tokens { get; set; }
-    public int total_tokens { get; set; }
-    public PromptTokensDetails prompt_tokens_details { get; set; }
-    public CompletionTokensDetails completion_tokens_details { get; set; }
 }

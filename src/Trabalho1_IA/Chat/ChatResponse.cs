@@ -1,4 +1,6 @@
-﻿namespace ProcessoChat.Chat;
+﻿using ProcessoChat.LLM;
+
+namespace ProcessoChat.Chat;
 
 public class ChatResponse
 {
