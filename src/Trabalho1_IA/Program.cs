@@ -12,7 +12,7 @@ namespace ProcessoChat;
 
 public class Program
 {
-    private static readonly string ContextDados = "dadosV2.txt"; // Arquivo JSON com dados
+    private static readonly string ContextDados = "Lista "; // Arquivo JSON com dados
     private static readonly string ContextEmbeddingsFile = "embeddingsContexto.json"; // Arquivo JSON com embeddings do contexto
     private static readonly string MemoryEmbeddingsFile = "embeddingsMemoria.json"; // Arquivo JSON com embeddings da memória
     private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
@@ -322,7 +322,6 @@ public class Program
         request.AddJsonBody(body);
 
         RestResponse response = await client.ExecuteAsync(request);
-        Console.WriteLine(response.Content);
 
         if(response.IsSuccessful && response.Content != null)
         {
