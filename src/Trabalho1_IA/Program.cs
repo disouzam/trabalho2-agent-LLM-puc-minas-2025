@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 
 using ProcessoChat.Chat;
@@ -76,7 +76,13 @@ public class Program
 
             string resposta = await EnviarParaOpenAI(promptFinal, MaxTokensResposta);
 
-            var embeddingsDaResposta = await Embeddings.GerarEmbedding([resposta]);
+            if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
+            {
+                resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
+            }
+
+            var perguntaEresposta = $"Pergunta do usuário:{pergunta}\nResposta da IA:{resposta}";
+            var embeddingsDaResposta = await Embeddings.GerarEmbedding([perguntaEresposta]);
 
             embeddingsDaMemoria.AddRange(embeddingsDaResposta);
 
@@ -198,12 +204,6 @@ public class Program
         }
 
         string resposta = result.Choices.First().Message.Content;
-
-        if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
-        {
-            resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
-        }
-
         return resposta;
     }
 
