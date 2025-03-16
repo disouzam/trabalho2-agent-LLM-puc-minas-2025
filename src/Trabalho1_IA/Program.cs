@@ -100,7 +100,7 @@ public class Program
 
             sessionUsageStatistics.AddRange(resposta.Item2);
 
-            var perguntaEresposta = $"Pergunta do usuário:\n\n{pergunta}\nResposta da IA:\n\n{textoDaResposta}";
+            var perguntaEresposta = $"Pergunta do usuário:\n\n{pergunta}\n\nResposta da IA:\n\n{textoDaResposta}";
             var embeddingsDaResposta = await Embeddings.GerarEmbedding([perguntaEresposta]);
 
             embeddingsDaMemoria.AddRange(embeddingsDaResposta);
