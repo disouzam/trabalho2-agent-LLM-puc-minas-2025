@@ -20,38 +20,61 @@ Este é um aplicativo console desenvolvido em .NET C# que utiliza a API da OpenA
 O projeto está organizado da seguinte forma:
 
 Trabalho1_IA/ <br/>
-├── CHAT/ <br/>
-│   ├── ChatMessage.cs <br/>
-│   ├── ChatResponse.cs <br/>
-│
-├── LLM/ <br/>
-│   ├── ChoiceResponse.cs <br/>
-│   ├── CompletionTokensDetails.cs <br/>
-│   ├── Datum.cs <br/>
-│   ├── EmbeddingData.cs <br/>
-│   ├── EmbeddingResponse.cs <br/>
-│   ├── FunctionCall.cs <br/>
-│   ├── Message.cs <br/>
-│   ├── PromptTokensDetails.cs <br/>
-│   ├── Usage.cs <br/>
-│   ├── UsageResponse.cs <br/>
-│
-├── Processos/ <br/>
-│   ├── Autor.cs <br/>
-│   ├── Processo.cs <br/>
-│   ├── ResponseConsultaExternaModelo.cs <br/>
-│   ├── Sessao.cs <br/>
-│
-├── Serviço/ <br/>
-│   ├── ClientAPI.cs <br/>
-│   ├── Embeddings.cs <br/>
-│   ├── OpenAIClient.cs<br/>
-│   ├── ProcessoExternoService.cs <br/>
-│
-├── Program.cs <br/>
-├── README.md <br/>
-├── .gitignore <br/>
- 
+
+CHAT/ <br/>
+
+ChatMessage.cs <br/>
+
+ChatResponse.cs<br/>
+
+LLM/ <br/>
+
+ChoiceResponse.cs <br/>
+
+CompletionTokensDetails.cs <br/>
+
+Datum.cs <br/>
+
+EmbeddingData.cs <br/>
+
+EmbeddingResponse.cs <br/>
+
+FunctionCall.cs <br/>
+
+Message.cs <br/>
+
+PromptTokensDetails.cs <br/>
+
+Usage.cs <br/>
+
+UsageResponse.cs <br/>
+
+Processos/ <br/>
+
+Autor.cs <br/>
+
+Processo.cs <br/>
+
+ResponseConsultaExternaModelo.cs <br/>
+
+Sessao.cs <br/>
+
+Serviço/ <br/>
+
+ClientAPI.cs <br/>
+
+Embeddings.cs <br/>
+
+OpenAIClient.cs <br/>
+
+ProcessoExternoService.cs <br/>
+
+Program.cs <br/>
+
+README.md <br/>
+
+.gitignore <br/>
+  
 # Requisitos
 
 Para executar o projeto, é necessário:
