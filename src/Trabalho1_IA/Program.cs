@@ -113,6 +113,80 @@ public class Program
 
         var usageStatistics = new List<UsageResponse>();
 
+        var result = await ChamadaPrincipal(client, modelName, prompt, maxTokensResposta);
+
+        usageStatistics.Add(result.Usage);
+
+        if(result.Choices.First().Message.FunctionCall != null)
+        {
+            string functionName = result.Choices.First().Message.FunctionCall.Name;
+            string argumentsJson = result.Choices.First().Message.FunctionCall.Arguments;
+
+            if(functionName == "GetProcessoExterno")
+            {
+                var result2 = await ObterInfoProcessoExterno(client, modelName, argumentsJson);
+
+                usageStatistics.Add(result.Usage);
+                var resposta2 = result2.Choices.First().Message.Content;
+                return (resposta2, usageStatistics);
+            }
+        }
+
+        var resposta = result.Choices.First().Message.Content;
+        return (resposta, usageStatistics);
+    }
+
+    private static async Task<ChatResponse> ObterInfoProcessoExterno(HttpClient client, string modelName, string argumentsJson)
+    {
+        var args = JsonSerializer.Deserialize<Dictionary<string, int>>(argumentsJson);
+        int numeroProjeto = args["Numero"];
+
+        string resultado = await GetProcessoExterno(numeroProjeto);
+
+        var responseMessage = new
+        {
+            role = "assistant",
+            content = resultado
+        };
+
+        var followUpPayload = new
+        {
+            model = modelName,
+            messages = new[]
+            {
+                new
+                {
+                    role = "system",
+                    content = "Você é um assistente especializado em responder perguntas com base nos dados fornecidos."
+                },
+                new
+                {
+                    role = "assistant",
+                    content = resultado
+                },
+                new
+                {
+                    role = "user",
+                    content = "Com base no resultado obtido da função, forneça um resumo detalhado."
+                }
+            },
+
+            //temperature = 0.4,
+            //max_tokens = maxTokensResposta,
+        };
+
+        string jsonFollowUpPayload = JsonSerializer.Serialize(followUpPayload);
+
+        var response2 = await client.PostAsync(ClientAPI.OpenAiEndpoint,
+        new StringContent(jsonFollowUpPayload, Encoding.UTF8, "application/json"));
+
+        string response2Text = await response2.Content.ReadAsStringAsync();
+        var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
+        return result2;
+    }
+
+    private static async Task<ChatResponse> ChamadaPrincipal(HttpClient client, string modelName, string prompt, int maxTokensResposta)
+    {
         var payload = new
         {
             model = modelName,
@@ -160,66 +234,7 @@ public class Program
 
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
-
-        usageStatistics.Add(result.Usage);
-
-        if(result.Choices.First().Message.FunctionCall != null)
-        {
-            string functionName = result.Choices.First().Message.FunctionCall.Name;
-            string argumentsJson = result.Choices.First().Message.FunctionCall.Arguments;
-
-            if(functionName == "GetProcessoExterno")
-            {
-                var args = JsonSerializer.Deserialize<Dictionary<string, int>>(argumentsJson);
-                int numeroProjeto = args["Numero"];
-
-                string resultado = await GetProcessoExterno(numeroProjeto);
-
-                var responseMessage = new
-                {
-                    role = "assistant",
-                    content = resultado
-                };
-
-                var followUpPayload = new
-                {
-                    model = modelName,
-                    messages = new[]
-                    {
-                       new
-                       {
-                            role = "system",
-                            content = "Você é um assistente especializado em responder perguntas com base nos dados fornecidos."
-                       },
-                       new
-                       {
-                            role = "assistant",
-                            content = resultado
-                       },
-                       new
-                       {
-                            role = "user",
-                            content = "Com base no resultado obtido da função, forneça um resumo detalhado."
-                       },
-                    }
-                };
-
-                string jsonFollowUpPayload = JsonSerializer.Serialize(followUpPayload);
-
-                var response2 = await client.PostAsync(ClientAPI.OpenAiEndpoint,
-                new StringContent(jsonFollowUpPayload, Encoding.UTF8, "application/json"));
-
-                string response2Text = await response2.Content.ReadAsStringAsync();
-                var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
-
-                usageStatistics.Add(result.Usage);
-                var resposta2 = result2.Choices.First().Message.Content;
-                return (resposta2, usageStatistics);
-            }
-        }
-
-        var resposta = result.Choices.First().Message.Content;
-        return (resposta, usageStatistics);
+        return result;
     }
 
     private static async Task<string> GetProcessoExterno(int processoId)
