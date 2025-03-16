@@ -186,8 +186,7 @@ public class Program
                 }
             },
 
-            //temperature = 0.4,
-            //max_tokens = maxTokensResposta,
+            temperature = 0.4,
         };
 
         string jsonFollowUpPayload = JsonSerializer.Serialize(followUpPayload);
