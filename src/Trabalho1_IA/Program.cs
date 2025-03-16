@@ -1,12 +1,10 @@
 ﻿using System.Text;
 using System.Text.Json;
 
+
 using ProcessoChat.Chat;
 using ProcessoChat.LLM;
-using ProcessoChat.Processos;
 using ProcessoChat.Servicos;
-
-using RestSharp;
 
 namespace ProcessoChat;
 
@@ -16,6 +14,7 @@ public class Program
     private static readonly string ContextEmbeddingsFile = "embeddingsContexto.json"; // Arquivo JSON com embeddings do contexto
     private static readonly string MemoryEmbeddingsFile = "embeddingsMemoria.json"; // Arquivo JSON com embeddings da memória
     private static readonly int MaxTokensResposta = 500; // Limite de tokens na resposta
+    private static bool ContextoAtualizado = false;
 
     public static async Task Main()
     {
@@ -31,6 +30,7 @@ public class Program
         var embeddingsDoContexto = new List<EmbeddingData>();
         var sessionUsageStatistics = new List<UsageResponse>();
 
+      
         while(true)
         {
             string pergunta;
@@ -52,9 +52,10 @@ public class Program
             if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
-            if(embeddingsDoContexto.Count == 0)
+            if(embeddingsDoContexto.Count == 0 || ContextoAtualizado)
             {
                 embeddingsDoContexto = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
+                ContextoAtualizado = false;
             }
 
             if(embeddingsDaMemoria.Count == 0)
@@ -139,7 +140,8 @@ public class Program
 
             if(functionName == "GetProcessoExterno")
             {
-                var result2 = await ObterInfoProcessoExterno(client, modelName, argumentsJson);
+                var result2 = await ProcessoExternoService.ObterInfoProcessoExterno(client, modelName, argumentsJson);
+                ContextoAtualizado = true;
 
                 usageStatistics.Add(result.Usage);
                 var resposta2 = result2.Choices.First().Message.Content;
@@ -149,54 +151,6 @@ public class Program
 
         var resposta = result.Choices.First().Message.Content;
         return (resposta, usageStatistics);
-    }
-
-    private static async Task<ChatResponse> ObterInfoProcessoExterno(HttpClient client, string modelName, string argumentsJson)
-    {
-        var args = JsonSerializer.Deserialize<Dictionary<string, int>>(argumentsJson);
-        int numeroProjeto = args["Numero"];
-
-        string resultado = await GetProcessoExterno(numeroProjeto);
-
-        var responseMessage = new
-        {
-            role = "assistant",
-            content = resultado
-        };
-
-        var followUpPayload = new
-        {
-            model = modelName,
-            messages = new[]
-            {
-                new
-                {
-                    role = "system",
-                    content = "Você é um assistente especializado em responder perguntas com base nos dados fornecidos."
-                },
-                new
-                {
-                    role = "assistant",
-                    content = resultado
-                },
-                new
-                {
-                    role = "user",
-                    content = "Com base no resultado obtido da função, forneça um resumo detalhado."
-                }
-            },
-
-            temperature = 0.4,
-        };
-
-        string jsonFollowUpPayload = JsonSerializer.Serialize(followUpPayload);
-
-        var response2 = await client.PostAsync(ClientAPI.OpenAiEndpoint,
-        new StringContent(jsonFollowUpPayload, Encoding.UTF8, "application/json"));
-
-        string response2Text = await response2.Content.ReadAsStringAsync();
-        var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
-        return result2;
     }
 
     private static async Task<ChatResponse> ChamadaPrincipal(HttpClient client, string modelName, string prompt, int maxTokensResposta)
@@ -251,103 +205,4 @@ public class Program
         return result;
     }
 
-    private static async Task<string> GetProcessoExterno(int processoId)
-    {
-        if(string.IsNullOrEmpty(Sessao.Token))
-        {
-            Sessao.Token = await LoginAPIExterna();
-        }
-
-        string responseJson = await ConsultarProcesso(processoId, Sessao.Token);
-
-        if(!string.IsNullOrEmpty(responseJson))
-        {
-            try
-            {
-                // Desserializa o JSON para um objeto em C#
-                var responseObj = JsonSerializer.Deserialize<ResponseConsultaExternaModelo>(responseJson);
-
-                if(responseObj?.Dados != null && responseObj.Dados.Any())
-                {
-                    var processo = responseObj.Dados.First();
-
-                    var resultado = new
-                    {
-                        tipo = processo.tipo,
-                        numero = processo.numero,
-                        processo = processo.processo,
-                        ano = processo.ano,
-                        ementa = processo.assunto,
-                        data = processo.data,
-                        autor = processo.AutorRequerenteDados?.nomeRazao ?? "Desconhecido",
-                        situacao = processo.situacao
-                    };
-
-                    string resultadoJson = JsonSerializer.Serialize(resultado, new JsonSerializerOptions { WriteIndented = true });
-                    return resultadoJson;
-                }
-                else
-                {
-                    return "";
-                }
-            }
-            catch
-            {
-                return "";
-            }
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    private static async Task<string> LoginAPIExterna()
-    {
-        var options = new RestClientOptions("https://homolog.nopapercloud.com.br")
-        {
-            Timeout = TimeSpan.FromMilliseconds(-1),
-        };
-
-        var client = new RestClient(options);
-        var request = new RestRequest("/camaramodelo/api/custom/base/login.aspx", Method.Post);
-
-        var body = new
-        {
-            Login = "teste.usuario",
-            Senha = "teste"
-        };
-
-        request.AddJsonBody(body);
-
-        RestResponse response = await client.ExecuteAsync(request);
-
-        if(response.IsSuccessful && response.Content != null)
-        {
-            var jsonResponse = JsonDocument.Parse(response.Content);
-
-            if(jsonResponse.RootElement.TryGetProperty("Dados", out var dados) &&
-                dados.TryGetProperty("Authorization", out var token))
-            {
-                return token.GetString();
-            }
-        }
-
-        return "Falha ao obter token.";
-    }
-
-    private static async Task<string> ConsultarProcesso(int Numero, string token)
-    {
-        var options = new RestClientOptions("https://homolog.nopapercloud.com.br")
-        {
-            Timeout = TimeSpan.FromMilliseconds(-1),
-        };
-        var client = new RestClient(options);
-        var request = new RestRequest($"/camaramodelo/api/custom/base/processos_consultar.aspx?Processo={Numero}", Method.Get);
-
-        request.AddHeader("Authorization", $"{token}");
-
-        RestResponse response = await client.ExecuteAsync(request);
-        return response.Content;
-    }
 }

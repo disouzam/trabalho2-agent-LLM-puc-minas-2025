@@ -72,6 +72,26 @@ public static class Embeddings
         return embeddingsList;
     }
 
+    public static async void AtualizarEmbedding(string chunk)
+    {
+        var embeddingsContextoName = "embeddingsContexto.json";
+        var newEmbeddingData = new EmbeddingData();
+
+        if (!string.IsNullOrEmpty(chunk))
+        {
+            var embedding = await ObterEmbedding(chunk);
+
+            newEmbeddingData.Texto = chunk;
+            newEmbeddingData.Embedding = embedding;
+
+            var listaEmbeddingsData = CarregarEmbeddings(embeddingsContextoName);
+
+            listaEmbeddingsData.Add(newEmbeddingData);
+
+            SalvarArquivoDeEmbeddings(listaEmbeddingsData, embeddingsContextoName);
+        }
+    }
+
     public static List<string> LerArquivoTexto(string caminhoDoArquivo)
     {
         List<string> linhasDoArquivo = [];
