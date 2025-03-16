@@ -50,8 +50,9 @@ public static class OpenAIClient
                 new
                 {
                     role = "system",
-                    content = @"Você deve responder **exclusivamente** com base no contexto fornecido. Se a resposta não estiver no contexto,
-                    também pode usar a função para buscar, caso não encontrar em nenhum responda  'Não sei'."
+                    content = @"Você deve responder **somente** com base no contexto fornecido. 
+                                Se a resposta não estiver no contexto, utilize a função do agente para buscar mais informações. 
+                                Caso a informação não seja encontrada no contexto nem na função, responda apenas: 'Não sei'."
                 },
                 new
                 {

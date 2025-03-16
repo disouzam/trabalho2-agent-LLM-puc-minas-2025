@@ -15,12 +15,6 @@ public static class ProcessoExternoService
 
         string resultado = await GetProcessoExterno(numeroProjeto);
 
-        var responseMessage = new
-        {
-            role = "assistant",
-            content = resultado
-        };
-
         var followUpPayload = new
         {
             model = modelName,
@@ -29,7 +23,9 @@ public static class ProcessoExternoService
                 new
                 {
                     role = "system",
-                    content = "Você é um assistente especializado em responder perguntas com base nos dados fornecidos."
+                     content = @"Você é um assistente especializado em responder perguntas com base exclusivamente nos dados fornecidos. 
+                                Se necessário, utilize a função do agente para buscar informações adicionais. Se a resposta não estiver disponível, 
+                                responda apenas 'Não sei'."
                 },
                 new
                 {
@@ -39,7 +35,7 @@ public static class ProcessoExternoService
                 new
                 {
                     role = "user",
-                    content = "Com base no resultado obtido da função, forneça um resumo detalhado."
+                    content = "Com base nas informações obtidas, gere um resumo detalhado e objetivo."
                 }
             },
 
