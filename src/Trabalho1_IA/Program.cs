@@ -81,7 +81,7 @@ public class Program
                 resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
             }
 
-            var perguntaEresposta = $"Pergunta do usuário:{pergunta}\nResposta da IA:{resposta}";
+            var perguntaEresposta = $"Pergunta do usuário:\n\n{pergunta}\nResposta da IA:\n\n{resposta}";
             var embeddingsDaResposta = await Embeddings.GerarEmbedding([perguntaEresposta]);
 
             embeddingsDaMemoria.AddRange(embeddingsDaResposta);
