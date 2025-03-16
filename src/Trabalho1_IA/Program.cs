@@ -65,12 +65,27 @@ public class Program
             var perguntaEmbedding = await Embeddings.ObterEmbedding(pergunta);
 
             var chunksRelevantesDoContexto = Embeddings.ObterChunksRelevantes(perguntaEmbedding, embeddingsDoContexto, 3);
-            var chunksRelevantesDaMemoria = Embeddings.ObterChunksRelevantes(perguntaEmbedding, embeddingsDaMemoria, 3);
 
+            var numeroUltimasMensagens = 3;
+
+            var chunksRelevantesDaMemoria = new List<string>();
+            var numeroEmbeddingsDaMemoria = embeddingsDaMemoria.Count;
+
+            if(numeroEmbeddingsDaMemoria > numeroUltimasMensagens)
+            {
+                chunksRelevantesDaMemoria = Embeddings.ObterChunksRelevantes(
+                    perguntaEmbedding,
+                    embeddingsDaMemoria.Take(numeroEmbeddingsDaMemoria - numeroUltimasMensagens).ToList(),
+                    topN: 3
+                );
+            }
+
+            var ultimasTresMensagens = embeddingsDaMemoria.TakeLast(numeroUltimasMensagens).Select(m => m.Texto).ToList();
             var chunksTotal = new List<string>();
 
             chunksTotal.AddRange(chunksRelevantesDoContexto);
             chunksTotal.AddRange(chunksRelevantesDaMemoria);
+            chunksTotal.AddRange(ultimasTresMensagens);
 
             string contexto = string.Join("\n", chunksTotal);
             string promptFinal = $"Contexto relevante:\n{contexto}\n\nPergunta:\n{pergunta}";
