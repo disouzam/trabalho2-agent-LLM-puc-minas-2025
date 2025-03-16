@@ -18,4 +18,7 @@ public class UsageResponse
 
     [JsonPropertyName("completion_tokens_details")]
     public CompletionTokensDetails completion_tokens_details { get; set; }
+
+    [JsonPropertyName("contextoAtualizado")]
+    public bool contextoAtualizado { get; set; }
 }
