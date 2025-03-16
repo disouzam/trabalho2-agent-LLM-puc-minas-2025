@@ -29,6 +29,7 @@ public class Program
 
         var embeddingsDaMemoria = new List<EmbeddingData>();
         var embeddingsDoContexto = new List<EmbeddingData>();
+        var sessionUsageStatistics = new List<UsageResponse>();
 
         while(true)
         {
@@ -74,14 +75,17 @@ public class Program
             string contexto = string.Join("\n", chunksTotal);
             string promptFinal = $"Contexto relevante:\n{contexto}\n\nPergunta:\n{pergunta}";
 
-            string resposta = await EnviarParaOpenAI(promptFinal, MaxTokensResposta);
+            var resposta = await EnviarParaOpenAI(promptFinal, MaxTokensResposta);
 
-            if(resposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
+            var textoDaResposta = resposta.Item1;
+            if(textoDaResposta.Contains("Não sei", StringComparison.OrdinalIgnoreCase))
             {
-                resposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
+                textoDaResposta = "Não sei. A resposta não foi encontrada no contexto fornecido.";
             }
 
-            var perguntaEresposta = $"Pergunta do usuário:\n\n{pergunta}\nResposta da IA:\n\n{resposta}";
+            sessionUsageStatistics.AddRange(resposta.Item2);
+
+            var perguntaEresposta = $"Pergunta do usuário:\n\n{pergunta}\nResposta da IA:\n\n{textoDaResposta}";
             var embeddingsDaResposta = await Embeddings.GerarEmbedding([perguntaEresposta]);
 
             embeddingsDaMemoria.AddRange(embeddingsDaResposta);
@@ -89,17 +93,25 @@ public class Program
             Embeddings.SalvarArquivoDeEmbeddings(embeddingsDaMemoria, MemoryEmbeddingsFile);
 
             Console.WriteLine("\nResposta da IA:");
-            Console.WriteLine(resposta);
+            Console.WriteLine(textoDaResposta);
             Console.WriteLine("\n----------------------------------\n");
+        }
+
+        foreach(var usageItem in sessionUsageStatistics)
+        {
+            var mensagem = $"\nTokens do prompt: {usageItem.prompt_tokens}\nTokens da resposta: {usageItem.completion_tokens}";
+            Console.WriteLine(mensagem);
         }
 
         Console.WriteLine("Chat encerrado.");
     }
 
-    private static async Task<string> EnviarParaOpenAI(string prompt, int maxTokensResposta)
+    private static async Task<(string, List<UsageResponse>)> EnviarParaOpenAI(string prompt, int maxTokensResposta)
     {
         using var client = new ClientAPI().ObterClientAPI();
         const string modelName = "gpt-4o-mini";
+
+        var usageStatistics = new List<UsageResponse>();
 
         var payload = new
         {
@@ -148,6 +160,8 @@ public class Program
 
         string responseText = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<ChatResponse>(responseText);
+
+        usageStatistics.Add(result.Usage);
 
         if(result.Choices.First().Message.FunctionCall != null)
         {
@@ -198,12 +212,14 @@ public class Program
                 string response2Text = await response2.Content.ReadAsStringAsync();
                 var result2 = JsonSerializer.Deserialize<ChatResponse>(response2Text);
 
-                return result2.Choices.First().Message.Content;
+                usageStatistics.Add(result.Usage);
+                var resposta2 = result2.Choices.First().Message.Content;
+                return (resposta2, usageStatistics);
             }
         }
 
-        string resposta = result.Choices.First().Message.Content;
-        return resposta;
+        var resposta = result.Choices.First().Message.Content;
+        return (resposta, usageStatistics);
     }
 
     private static async Task<string> GetProcessoExterno(int processoId)
