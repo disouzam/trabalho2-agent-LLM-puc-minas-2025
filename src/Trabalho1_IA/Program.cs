@@ -99,10 +99,11 @@ public class Program
     private static async Task<string> EnviarParaOpenAI(string prompt, int maxTokensResposta)
     {
         using var client = new ClientAPI().ObterClientAPI();
+        const string modelName = "gpt-4o-mini";
 
         var payload = new
         {
-            model = "gpt-4o-mini",
+            model = modelName,
 
             messages = new[]
             {
@@ -168,7 +169,7 @@ public class Program
 
                 var followUpPayload = new
                 {
-                    model = "gpt-4o-mini",
+                    model = modelName,
                     messages = new[]
                     {
                        new
