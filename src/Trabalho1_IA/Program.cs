@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 using ProcessoChat.Chat;
@@ -51,12 +51,12 @@ public class Program
             if(pergunta.Equals("sair", StringComparison.OrdinalIgnoreCase))
                 break;
 
-            if (embeddingsDoContexto.Count == 0)
+            if(embeddingsDoContexto.Count == 0)
             {
                 embeddingsDoContexto = Embeddings.CarregarEmbeddings(ContextEmbeddingsFile);
             }
 
-            if (embeddingsDaMemoria.Count == 0)
+            if(embeddingsDaMemoria.Count == 0)
             {
                 embeddingsDaMemoria = Embeddings.CarregarEmbeddings(MemoryEmbeddingsFile);
             }
@@ -96,9 +96,7 @@ public class Program
         Console.WriteLine("Chat encerrado.");
     }
 
-
-
-    static async Task<string> EnviarParaOpenAI(string prompt, int maxTokensResposta)
+    private static async Task<string> EnviarParaOpenAI(string prompt, int maxTokensResposta)
     {
         using var client = new ClientAPI().ObterClientAPI();
 
@@ -207,7 +205,7 @@ public class Program
         return resposta;
     }
 
-    static async Task<string> GetProcessoExterno(int processoId)
+    private static async Task<string> GetProcessoExterno(int processoId)
     {
         if(string.IsNullOrEmpty(Sessao.Token))
         {
@@ -293,7 +291,7 @@ public class Program
         return "Falha ao obter token.";
     }
 
-    static async Task<string> ConsultarProcesso(int Numero, string token)
+    private static async Task<string> ConsultarProcesso(int Numero, string token)
     {
         var options = new RestClientOptions("https://homolog.nopapercloud.com.br")
         {
