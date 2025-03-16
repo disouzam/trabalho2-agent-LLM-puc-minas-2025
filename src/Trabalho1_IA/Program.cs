@@ -71,19 +71,15 @@ public class Program
             chunksTotal.AddRange(chunksRelevantesDoContexto);
             chunksTotal.AddRange(chunksRelevantesDaMemoria);
 
-            // (Dickson) Passo 4: Nesse ponto o contexto já está formado por chunks do RAG e da memória
             string contexto = string.Join("\n", chunksTotal);
             string promptFinal = $"Contexto relevante:\n{contexto}\n\nPergunta:\n{pergunta}";
 
             string resposta = await EnviarParaOpenAI(promptFinal, MaxTokensResposta);
 
-            // Rascunho de implementação do uso de memória
-            // (Dickson) Passo 0: Converter a resposta em embeddings
             var embeddingsDaResposta = await Embeddings.GerarEmbedding([resposta]);
 
             embeddingsDaMemoria.AddRange(embeddingsDaResposta);
 
-            // (Dickson) Passo 1: Salvar esses embeddings em um arquivo separado
             Embeddings.SalvarArquivoDeEmbeddings(embeddingsDaMemoria, MemoryEmbeddingsFile);
 
             Console.WriteLine("\nResposta da IA:");
