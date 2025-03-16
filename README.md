@@ -15,65 +15,42 @@
 
 Este é um aplicativo console desenvolvido em .NET C# que utiliza a API da OpenAI para buscar processos legislativos. O sistema interage com modelos de linguagem para processar e retornar informações relevantes.
 
-# Estrutura do Projeto
+# 📂 Estrutura do Projeto
 
 O projeto está organizado da seguinte forma:
 
-Trabalho1_IA/ <br/>
+## 📁 CHAT  
+- ChatMessage.cs  
+- ChatResponse.cs  
 
-CHAT/ <br/>
+## 📁 LLM  
+- ChoiceResponse.cs  
+- CompletionTokensDetails.cs  
+- Datum.cs  
+- EmbeddingData.cs  
+- EmbeddingResponse.cs  
+- FunctionCall.cs  
+- Message.cs  
+- PromptTokensDetails.cs  
+- Usage.cs  
+- UsageResponse.cs  
 
-ChatMessage.cs <br/>
+## 📁 Processos  
+- Autor.cs  
+- Processo.cs  
+- ResponseConsultaExternaModelo.cs  
+- Sessao.cs  
 
-ChatResponse.cs<br/>
+## 📁 Serviço  
+- ClientAPI.cs  
+- Embeddings.cs  
+- OpenAIClient.cs  
+- ProcessoExternoService.cs  
 
-LLM/ <br/>
-
-ChoiceResponse.cs <br/>
-
-CompletionTokensDetails.cs <br/>
-
-Datum.cs <br/>
-
-EmbeddingData.cs <br/>
-
-EmbeddingResponse.cs <br/>
-
-FunctionCall.cs <br/>
-
-Message.cs <br/>
-
-PromptTokensDetails.cs <br/>
-
-Usage.cs <br/>
-
-UsageResponse.cs <br/>
-
-Processos/ <br/>
-
-Autor.cs <br/>
-
-Processo.cs <br/>
-
-ResponseConsultaExternaModelo.cs <br/>
-
-Sessao.cs <br/>
-
-Serviço/ <br/>
-
-ClientAPI.cs <br/>
-
-Embeddings.cs <br/>
-
-OpenAIClient.cs <br/>
-
-ProcessoExternoService.cs <br/>
-
-Program.cs <br/>
-
-README.md <br/>
-
-.gitignore <br/>
+## 📄 Arquivos principais  
+- Program.cs  
+- README.md  
+- .gitignore 
   
 # Requisitos
 
